@@ -17,6 +17,7 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>mbse ecss-e-tm-10-25 cdp4 modeltopia</PackageTags>
         <PackageIcon>cdp4-comet-logo.png</PackageIcon>
+        <ApplicationIcon>icon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <PropertyGroup Label="Copyright">
@@ -35,6 +36,7 @@
     <ItemGroup>
         <None Include="..\cdp4-comet-logo.png" Pack="true" PackagePath="\" />
         <None Include="..\README.md" Pack="true" PackagePath="\" />
+        <Content Include="icon.ico" />
     </ItemGroup>
 
     <ItemGroup>
