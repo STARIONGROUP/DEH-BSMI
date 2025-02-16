@@ -46,3 +46,26 @@ The application takes the following steps:
     - iterate though the requirements and find the one that is equal to the target in the just found binary relationship
     - store the combined `elementdefinition`-`requirement`-`BSMI` information in a list
     - iterate thriugh the `elementdefinition`-`requirement`-`BSMI` list and generate the excel spreadsheet
+
+
+# Code Quality
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=STARIONGROUP_DEH-BSMI&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=STARIONGROUP_uml4net)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=STARIONGROUP_DEH-BSMI&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=STARIONGROUP_uml4net)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=STARIONGROUP_DEH-BSMI&metric=coverage)](https://sonarcloud.io/summary/new_code?id=STARIONGROUP_uml4net)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=STARIONGROUP_DEH-BSMI&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=STARIONGROUP_uml4net)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=STARIONGROUP_DEH-BSMI&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=STARIONGROUP_uml4net)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=STARIONGROUP_DEH-BSMI&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=STARIONGROUP_uml4net)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=STARIONGROUP_DEH-BSMI&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=STARIONGROUP_uml4net)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=STARIONGROUP_DEH-BSMI&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=STARIONGROUP_uml4net)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=STARIONGROUP_DEH-BSMI&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=STARIONGROUP_uml4net)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=STARIONGROUP_DEH-BSMI&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=STARIONGROUP_uml4net)
+
+# Build Status
+
+GitHub actions are used to build and test the uml4net libraries
+
+Branch | Build Status
+------- | :------------
+Master | ![Build Status](https://github.com/STARIONGROUP/DEH-BSMI/actions/workflows/CodeQuality.yml/badge.svg?branch=master)
+Development | ![Build Status](https://github.com/STARIONGROUP/DEH-BSMI/actions/workflows/CodeQuality.yml/badge.svg?branch=development)
