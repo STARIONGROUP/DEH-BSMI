@@ -30,19 +30,19 @@ dotnet publish DEH-BSMI.Tools/DEH-BSMI.Tools.csproj -c Release -r osx-x64 --self
 
 ## License and copyright
 
-The DEH-BSMI.Tools commandline application is distributed with 
+The DEH-BSMI.Tools commandline application is distributed with the APACHE 2.0 License.
 
 ## Process Flow
 
 The application takes the following steps:
 
-1. connects to the selected data source and opens the model/iteration
-1. Generates a requirements sheet that contains a row per requirements
-1. Generates per option a requirements sheet according to the BSMI structure:
-  - Per option generate a nested element tree
-  - iterates through the nested element tree
-  - find the BSMI parameter per element and when found...
-  - find the binary relationship where the source is an element definition and the target is a requirement
-  - iterate though the requirements and find the one that is equal to the target in the just found binary relationship
-  - store the combined `elementdefinition`-`requirement`-`BSMI` information in a list
-  - iterate thriugh the `elementdefinition`-`requirement`-`BSMI` list and generate the excel spreadsheet
+  - connects to the selected data source and opens the model/iteration
+  - Generates a requirements sheet that contains a row per requirements
+  - Generates per option a requirements sheet according to the BSMI structure:
+    - Per option generate a nested element tree
+    - iterates through the nested element tree
+    - find the BSMI parameter per element and when found...
+    - find the binary relationship where the source is an element definition and the target is a requirement
+    - iterate though the requirements and find the one that is equal to the target in the just found binary relationship
+    - store the combined `elementdefinition`-`requirement`-`BSMI` information in a list
+    - iterate thriugh the `elementdefinition`-`requirement`-`BSMI` list and generate the excel spreadsheet
