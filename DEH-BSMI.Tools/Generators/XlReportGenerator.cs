@@ -253,6 +253,26 @@ namespace DEHBSMI.Tools.Generators
                 }
             }
 
+            // assign unallocated requirements a specific bsmi code
+            foreach (var specification in iteration.RequirementsSpecification.Where(x => !x.IsDeprecated))
+            {
+                foreach (var requirement in specification.Requirement)
+                {
+                    var allocatedRequirements = requirementPayloads.Where(x => x.Value.Requirement == requirement);
+                    if (!allocatedRequirements.Any())
+                    {
+                        if (!requirementPayloads.TryGetValue(requirement.Iid, out var requirementPayload))
+                        {
+                            requirementPayload = new RequirementPayload(requirement);
+                            requirementPayload.Bsmi = "9999";
+                            requirementPayloads.Add(requirement.Iid, requirementPayload);
+
+                            this.logger.LogWarning("The requirement has not been linked to a BSMI and is therefore added to BSMI 9999");
+                        }
+                    }
+                }
+            }
+
             var dataTable = new DataTable();
             dataTable.Locale = CultureInfo.InvariantCulture;
 
