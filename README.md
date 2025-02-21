@@ -6,17 +6,25 @@ Commandline application that retrives data from an ECSS-E-TM-10-25 data source a
 
 The commandline application supports the following commandline options:
 
-| option              | alias |  description |
-| ------------------- | ----- | ------------ | 
-| --no-logo           |       | suppress showing the logo |
-| --data-source       | -ds   | The URI of the ECSS-E-TM-10-25 data source |
-| --username          | -u    | The username that is used to open the selected data source | 
-| --password          | -p    | The password that is used to open the selected data source |
-| --model             | -m    | The EngineeringModel shortname |
-| --iteration         | -i    | the Iteration number |
-| --domainofexpertise | -d    | The Domain of Expertise shortname |
-| --output-report     | -o    | path to report file |
-| --auto-open-report  | -a    | Open the generated report with its default application |
+| option                  | alias  |  description |
+| ----------------------- | ------ | ------------ | 
+| --no-logo               |        | suppress showing the logo |
+| --data-source           | -ds    | The URI of the ECSS-E-TM-10-25 data source |
+| --username              | -u     | The username that is used to open the selected data source | 
+| --password              | -p     | The password that is used to open the selected data source |
+| --model                 | -m     | The EngineeringModel shortname |
+| --iteration             | -i     | the Iteration number |
+| --domainofexpertise     | -d     | The Domain of Expertise shortname |
+| --source-specification  | --spec | The Specification from which the report is generated. If not specified all available non-deprecated specifications are taken into account |
+| --unallocated-bsmi-code | -ubc   | the value of the BSMI parameter for unallocated requirements |
+| --output-report         | -o     | path to report file |
+| --auto-open-report      | -a     | Open the generated report with its default application |
+
+The following gives a complete example that can be used on the publicly hosted server:
+
+```
+DEH-BSMI.Tools.exe excel-report --username admin --password pass --data-source http://cdp4services-public.cdp4.org --model LOFT --iteration 1 --domainofexpertise SYE --auto-open-report true
+```
 
 ## Build and Release
 
