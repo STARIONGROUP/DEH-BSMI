@@ -302,6 +302,17 @@ namespace DEHBSMI.Tools.Generators
             {
                 var requirementDataRow = dataTable.NewRow();
 
+                var objectLevel = "-";
+                try
+                {
+                    objectLevel = payload.Bsmi.ComputeObjectLevel();
+                }
+                catch (Exception e)
+                {
+                    this.logger.LogWarning("the object level for requirement {Requirement} could not be computed", payload.Requirement.Iid);
+                }
+
+                requirementDataRow["Object Level"] = objectLevel;
                 requirementDataRow["UID"] = payload.Requirement.ShortName;
                 requirementDataRow["BSMI Nummer"] = payload.Bsmi;
                 requirementDataRow["Eistekst - EN"] = payload.Requirement.QueryDefinitionContent();
