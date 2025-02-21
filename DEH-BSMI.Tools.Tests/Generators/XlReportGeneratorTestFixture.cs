@@ -76,8 +76,8 @@ namespace DEH_BSMI.Reporting.Tests.Generators
 
             var outputPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "BSMI.xlsx");
             var outputReport = new FileInfo(outputPath);
-            
-            Assert.That(() => this.XlReportGenerator.Generate(iteration, outputReport), Throws.Nothing);
+
+            Assert.That(() => this.XlReportGenerator.Generate(iteration, iteration.RequirementsSpecification, outputReport), Throws.Nothing);
         }
     }
 }
