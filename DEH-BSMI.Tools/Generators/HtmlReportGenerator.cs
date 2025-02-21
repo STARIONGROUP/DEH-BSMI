@@ -27,6 +27,7 @@ namespace DEHBSMI.Tools.Generators
 
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Abstractions;
+    using System.Collections.Generic;
 
     /// <summary>
     /// The purpose of the <see cref="HtmlReportGenerator"/> is to generate an HTML based
@@ -56,10 +57,13 @@ namespace DEHBSMI.Tools.Generators
         /// <param name="iteration">
         /// The <see cref="Iteration"/> that contains the data that is to be generated
         /// </param>
+        /// <param name="specifications">
+        /// The <see cref="RequirementsSpecification"/>s that need to be taken into account for report generation
+        /// </param>
         /// <param name="outputReport">
         /// The <see cref="FileInfo"/> where the result is to be generated
         /// </param>
-        public void Generate(Iteration iteration, FileInfo outputReport)
+        public void Generate(Iteration iteration, IEnumerable<RequirementsSpecification> specifications, FileInfo outputReport)
         {
             this.logger.LogInformation("Start Generating the HTML BMSI Report");
 

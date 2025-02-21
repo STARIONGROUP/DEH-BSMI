@@ -18,6 +18,10 @@
 //  </copyright>
 //  ------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
+using CDP4Common.EngineeringModelData;
+
 namespace DEHBSMI.Tools.Commands
 {
     using System;
@@ -123,6 +127,17 @@ namespace DEHBSMI.Tools.Commands
         public FileInfo OutputReport { get; set; }
 
         /// <summary>
+        /// Gets or sets the name of the specification that needs to be processed. If empty or null then all non-deprecated
+        /// Requirements Specifications are taken into account
+        /// </summary>
+        public string SourceSpecification { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value for the BSMI parameter for unallocated requirements
+        /// </summary>
+        public string UnallocatedBsmiCode { get; set; }
+
+        /// <summary>
         /// Gets or sets the value indicating whether the generated report needs to be automatically be
         /// opened once generated.
         /// </summary>
@@ -177,6 +192,8 @@ namespace DEHBSMI.Tools.Commands
                 AnsiConsole.MarkupLine($"[green] --model: {Markup.Escape(this.Model)}[/]");
                 AnsiConsole.MarkupLine($"[green] --iteration: {Markup.Escape(this.Iteration.ToString(CultureInfo.InvariantCulture))}[/]");
                 AnsiConsole.MarkupLine($"[green] --domainofexpertise: {Markup.Escape(this.DomainOfExpertise)}[/]");
+                AnsiConsole.MarkupLine($"[green] --source-specification: {Markup.Escape(string.IsNullOrEmpty(this.SourceSpecification) ? "All" : this.SourceSpecification)}[/]");
+                AnsiConsole.MarkupLine($"[green] --unallocated-bsmi-code: {Markup.Escape(this.UnallocatedBsmiCode)}[/]");
                 AnsiConsole.MarkupLine($"[green] --auto-open-report: {Markup.Escape(this.AutoOpenReport.ToString(CultureInfo.InvariantCulture))}[/]");
 
                 AnsiConsole.WriteLine();
@@ -194,10 +211,25 @@ namespace DEHBSMI.Tools.Commands
 
                 var iteration = await this.iterationReader.ReadAsync(session, this.Model, this.Iteration, this.DomainOfExpertise);
 
+                var requirementsSpecifications = new List<RequirementsSpecification>();
+                if (string.IsNullOrEmpty(this.SourceSpecification))
+                {
+                    var specs = iteration.RequirementsSpecification.Where(x => !x.IsDeprecated);
+                    requirementsSpecifications.AddRange(specs);
+                }
+                else
+                {
+                    var spec = iteration.RequirementsSpecification.SingleOrDefault(x => x.ShortName == this.SourceSpecification);
+                    if (spec != null)
+                    {
+                        requirementsSpecifications.Add(spec);
+                    }
+                }
+
                 AnsiConsole.MarkupLine($"[green] Generating Report[/]");
                 await Task.Delay(250);
 
-                this.ReportGenerator.Generate(iteration, this.OutputReport);
+                this.ReportGenerator.Generate(iteration, requirementsSpecifications, this.OutputReport);
 
                 AnsiConsole.MarkupLine($"[grey]LOG:[/] Requirement {this.ReportGenerator.QueryReportType()} report generated at [bold]{this.OutputReport.FullName}[/]");
                 AnsiConsole.WriteLine();
@@ -207,7 +239,6 @@ namespace DEHBSMI.Tools.Commands
                 if (this.AutoOpenReport)
                 {
                     this.ExecuteAutoOpen();
-
                 }
 
                 return 0;

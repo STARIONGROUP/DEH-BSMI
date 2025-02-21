@@ -70,10 +70,13 @@ namespace DEHBSMI.Tools.Generators
         /// <param name="iteration">
         /// The <see cref="Iteration"/> that contains the data that is to be generated
         /// </param>
+        /// <param name="specifications">
+        /// The <see cref="RequirementsSpecification"/>s that need to be taken into account for report generation
+        /// </param>
         /// <param name="outputReport">
         /// The <see cref="FileInfo"/> where the result is to be generated
         /// </param>
-        public void Generate(Iteration iteration, FileInfo outputReport)
+        public void Generate(Iteration iteration, IEnumerable<RequirementsSpecification> specifications, FileInfo outputReport)
         {
             if (iteration == null)
             {
@@ -90,15 +93,15 @@ namespace DEHBSMI.Tools.Generators
             this.logger.LogInformation("Start Generating the XL BMSI Report");
 
             using var workbook = new XLWorkbook();
-            this.AddInfoSheet(workbook, iteration);
+            this.AddInfoSheet(workbook, iteration, specifications);
 
             // generate all requirements in a sheet - following the specification and grouping
-            this.GenerateRequirementSheet(workbook, iteration);
+            this.GenerateRequirementSheet(workbook, iteration, specifications);
 
             // generate an option sheet
             foreach (Option option in iteration.Option)
             {
-                this.GenerateBsmiSheet(workbook, iteration, option);
+                this.GenerateBsmiSheet(workbook, iteration, specifications, option);
             }
 
             this.logger.LogInformation("Saving BSMI file to {0}", outputReport.FullName);
@@ -117,7 +120,7 @@ namespace DEHBSMI.Tools.Generators
         /// <param name="iteration">
         /// The <see cref="Iteration"/> that contains the data
         /// </param>
-        private void GenerateRequirementSheet(XLWorkbook workbook, Iteration iteration)
+        private void GenerateRequirementSheet(XLWorkbook workbook, Iteration iteration, IEnumerable<RequirementsSpecification> specifications)
         {
             var requirementsWorksheet = workbook.Worksheets.Add("Requirements");
 
@@ -132,7 +135,7 @@ namespace DEHBSMI.Tools.Generators
             dataTable.Columns.Add("Owner", typeof(string));
             dataTable.Columns.Add("Categories", typeof(string));
 
-            foreach (var requirementsSpecification in iteration.RequirementsSpecification)
+            foreach (var requirementsSpecification in specifications)
             {
                 var nonGroupedRequirements = requirementsSpecification.Requirement.Where(x => x.Group == null);
 
@@ -205,10 +208,13 @@ namespace DEHBSMI.Tools.Generators
         /// <param name="iteration">
         /// The <see cref="Iteration"/> that contains the data
         /// </param>
+        /// <param name="specifications">
+        /// The <see cref="RequirementsSpecification"/>s that need to be taken into account for report generation
+        /// </param>
         /// <param name="option">
         /// The <see cref="Option"/> for which the requirements are generated
         /// </param>
-        private void GenerateBsmiSheet(XLWorkbook workbook, Iteration iteration, Option option)
+        private void GenerateBsmiSheet(XLWorkbook workbook, Iteration iteration, IEnumerable<RequirementsSpecification> specifications, Option option)
         {
             var optionWorksheet = workbook.Worksheets.Add($"{option.ShortName}");
 
@@ -235,26 +241,31 @@ namespace DEHBSMI.Tools.Generators
                     {
                         var requirement = binaryRelationship.Target as Requirement;
 
-                        if (!requirementPayloads.TryGetValue(requirement.Iid, out var requirementPayload))
-                        {
-                            requirementPayload = new RequirementPayload(requirement);
-                            requirementPayload.Bsmi = bsmiNestedParameter.ActualValue;
-                            requirementPayloads.Add(requirement.Iid, requirementPayload);
-                        }
+                        var isRequirementContainedByInlcudedSpecification = specifications.Any(requirementsSpecification => requirementsSpecification.Requirement.Contains(requirement));
 
-                        requirementPayload.BinaryRelationships.Add(binaryRelationship);
-                        requirementPayload.NestedElement.Add(nestedElement);
-
-                        if (requirementPayload.Bsmi != bsmiNestedParameter.ActualValue)
+                        if (isRequirementContainedByInlcudedSpecification)
                         {
-                            this.logger.LogWarning("The requirement has been linked to multiple BSMI");
+                            if (!requirementPayloads.TryGetValue(requirement.Iid, out var requirementPayload))
+                            {
+                                requirementPayload = new RequirementPayload(requirement);
+                                requirementPayload.Bsmi = bsmiNestedParameter.ActualValue;
+                                requirementPayloads.Add(requirement.Iid, requirementPayload);
+                            }
+
+                            requirementPayload.BinaryRelationships.Add(binaryRelationship);
+                            requirementPayload.NestedElement.Add(nestedElement);
+
+                            if (requirementPayload.Bsmi != bsmiNestedParameter.ActualValue)
+                            {
+                                this.logger.LogWarning("The requirement has been linked to multiple BSMI");
+                            }
                         }
                     }
                 }
             }
 
             // assign unallocated requirements a specific bsmi code
-            foreach (var specification in iteration.RequirementsSpecification.Where(x => !x.IsDeprecated))
+            foreach (var specification in specifications)
             {
                 foreach (var requirement in specification.Requirement)
                 {
@@ -315,7 +326,10 @@ namespace DEHBSMI.Tools.Generators
         /// <param name="iteration">
         /// The root <see cref="Iteration"/>
         /// </param>
-        private void AddInfoSheet(XLWorkbook workbook, Iteration iteration)
+        /// <param name="specifications">
+        /// The <see cref="RequirementsSpecification"/>s that need to be taken into account for report generation
+        /// </param>
+        private void AddInfoSheet(XLWorkbook workbook, Iteration iteration, IEnumerable<RequirementsSpecification> specifications)
         {
             var engineeringModel = iteration.Container as EngineeringModel;
             var engineeringModelSetup = engineeringModel.EngineeringModelSetup;
@@ -345,6 +359,11 @@ namespace DEHBSMI.Tools.Generators
 
             infoWorksheet.Cell(6, 1).Value = "Iteration - Description";
             infoWorksheet.Cell(6, 2).Value = iterationSetup.Description;
+
+            infoWorksheet.Cell(7, 1).Value = "Requirement Specifications";
+            infoWorksheet.Cell(7, 2).Value = !specifications.Any()
+                ? "ALL"
+                : string.Join(", ", specifications.Select(x => $"{x.Name} [{x.ShortName}]"  ));
 
             this.FormatSheet(infoWorksheet);
         }

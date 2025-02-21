@@ -18,6 +18,8 @@
 //  </copyright>
 //  ------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+
 namespace DEHBSMI.Tools.Generators
 {
     using System;
@@ -37,10 +39,13 @@ namespace DEHBSMI.Tools.Generators
         /// <param name="iteration">
         /// The <see cref="Iteration"/> that contains the data that is to be generated
         /// </param>
+        /// <param name="specifications">
+        /// The <see cref="RequirementsSpecification"/>s that need to be taken into account for report generation
+        /// </param>
         /// <param name="outputReport">
         /// The <see cref="FileInfo"/> where the result is to be generated
         /// </param>
-        public void Generate(Iteration iteration, FileInfo outputReport);
+        public void Generate(Iteration iteration, IEnumerable<RequirementsSpecification> specifications, FileInfo outputReport);
         
         /// <summary>
         /// Verifies whether the extension of the <paramref name="outputPath"/> is valid or not

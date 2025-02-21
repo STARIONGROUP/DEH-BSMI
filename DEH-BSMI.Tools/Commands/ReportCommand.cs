@@ -84,6 +84,23 @@ namespace DEHBSMI.Tools.Commands
             domainOfExpertiseOption.IsRequired = true;
             this.AddOption(domainOfExpertiseOption);
 
+            var sourceSpecificationOption = new Option<string>(
+                    name: "--source-specification",
+                    description: "The Specification from which the report is generated. If not specified all available non-deprecated specifications are taken into account"
+            );
+            sourceSpecificationOption.AddAlias("-spec");
+            sourceSpecificationOption.IsRequired = false;
+            this.AddOption(sourceSpecificationOption);
+
+            var unallocatedBsmiCodeOption = new Option<string>(
+                name: "--unallocated-bsmi-code",
+                description: "the value of the BSMI parameter for unallocated requirements",
+                getDefaultValue: () => "9999"
+            );
+            unallocatedBsmiCodeOption.AddAlias("-ubc");
+            unallocatedBsmiCodeOption.IsRequired = false;
+            this.AddOption(unallocatedBsmiCodeOption);
+
             var autoOpenReportOption = new Option<bool>(
                 name: "--auto-open-report",
                 description: "Open the generated report with its default application",
