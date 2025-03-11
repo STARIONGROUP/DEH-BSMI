@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-//  <copyright file="XlReportCommand.cs" company="Starion Group S.A.">
+//  <copyright file="DotFileCommand.cs" company="Starion Group S.A.">
 // 
 //    Copyright 2019-2025 Starion Group S.A.
 // 
@@ -20,6 +20,7 @@
 
 namespace DEHBSMI.Tools.Commands
 {
+    using System.Collections.Generic;
     using System.CommandLine;
     using System.CommandLine.Invocation;
     using System.IO;
@@ -29,46 +30,37 @@ namespace DEHBSMI.Tools.Commands
     using STARIONGROUP.DEHCSV.Services;
 
     /// <summary>
-    /// The purpose of the <see cref="XlReportCommand"/> is to convert ECSS-E-TM-10-25 data to
-    /// a so-called BSMI structure in the form of a Excel spreadsheet report
+    /// The purpose of the <see cref="DotFileCommand"/> is to convert ECSS-E-TM-10-25 data to
+    /// into a dotfile that can be processed by GraphViz
     /// </summary>
-    public class XlReportCommand : ReportCommand
+    public class DotFileCommand : ReportCommand
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="XlReportCommand"/>
+        /// Initializes a new instance of the <see cref="DotFileCommand"/>
         /// </summary>
-        public XlReportCommand() : base("excel-report", "Generates a tabular report of the 10-25 model")
+        public DotFileCommand() : base("dot-report", "Generates dot file")
         {
-            var unallocatedBsmiCodeOption = new Option<string>(
-                name: "--unallocated-bsmi-code",
-                description: "the value of the BSMI parameter for unallocated requirements",
-                getDefaultValue: () => "9999"
-            );
-            unallocatedBsmiCodeOption.AddAlias("-ubc");
-            unallocatedBsmiCodeOption.IsRequired = false;
-            this.AddOption(unallocatedBsmiCodeOption);
+            var specOption = new Option<List<string>>(
+                name: "--specification",
+                description: "Requirement specification shortname followed by category shortnames, e.g. SPEC:CAT1:CAT2");
+            specOption.AllowMultipleArgumentsPerToken = false;
+            specOption.Arity = ArgumentArity.ZeroOrMore;
+            specOption.AddAlias("-spec");
+            this.AddOption(specOption);
 
             var outputReportOption = new Option<FileInfo>(
                 name: "--output-report",
-                description: "The path to the tabular report file. Supported extensions are '.xlsx', '.xlsm', '.xltx' and '.xltm'",
-                getDefaultValue: () => new FileInfo("requirements-report.xlsx"));
+                description: "The path to the dot file. Supported extensions is '.dot'",
+                getDefaultValue: () => new FileInfo("dot-report.dot"));
             outputReportOption.AddAlias("-o");
             outputReportOption.IsRequired = true;
             this.AddOption(outputReportOption);
-
-            var sourceSpecificationOption = new Option<string>(
-                name: "--source-specification",
-                description: "The Specification from which the report is generated. If not specified all available non-deprecated specifications are taken into account"
-            );
-            sourceSpecificationOption.AddAlias("-spec");
-            sourceSpecificationOption.IsRequired = false;
-            this.AddOption(sourceSpecificationOption);
         }
 
         /// <summary>
         /// The Command Handler of the <see cref="XlReportCommand"/>
         /// </summary>
-        public new class Handler : RequirementsReportHandler, ICommandHandler
+        public new class Handler : DotFileHandler, ICommandHandler
         {
             /// <summary>
             /// Initializes a nwe instance of the <see cref="Handler"/> class.
@@ -81,13 +73,13 @@ namespace DEHBSMI.Tools.Commands
             /// The (injected) <see cref="IIterationReader"/> used to read <see cref="Iteration"/> data 
             /// from the selected data source
             /// </param>
-            /// <param name="xlReportGenerator">
-            /// The (injected) <see cref="IXlReportGenerator"/> that is used to generate the
+            /// <param name="traceabilityDotFileGenerator">
+            /// The (injected) <see cref="ITraceabilityDotFileGenerator"/> that is used to generate the
             /// excel report
             /// </param>
             public Handler(IDataSourceSelector dataSourceSelector,
-                IIterationReader iterationReader, IXlReportGenerator xlReportGenerator) 
-                : base(dataSourceSelector, iterationReader, xlReportGenerator)
+                IIterationReader iterationReader, ITraceabilityDotFileGenerator traceabilityDotFileGenerator)
+                : base(dataSourceSelector, iterationReader, traceabilityDotFileGenerator)
             {
             }
         }

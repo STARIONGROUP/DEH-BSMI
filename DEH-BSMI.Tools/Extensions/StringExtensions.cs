@@ -49,5 +49,10 @@ namespace DEHBSMI.Tools.Extensions
             // Determine level (1 to 4)
             return (4 - zeroCount).ToString();
         }
+
+        public static string CleanupShortName(this string shortname)
+        {
+            return shortname.Replace('-', '_').Replace(' ', '_');
+        }
     }
 }

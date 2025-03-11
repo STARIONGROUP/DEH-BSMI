@@ -25,6 +25,6 @@ namespace DEHBSMI.Tools.Generators
     /// report from an ECSS-E-TM-10-25 model according the BSMI structure
     /// </summary>
     public interface IXlReportGenerator : IReportGenerator
-    {   
+    {
     }
 }

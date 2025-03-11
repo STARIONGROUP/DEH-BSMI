@@ -18,20 +18,21 @@
 //  </copyright>
 //  ------------------------------------------------------------------------------------------------
 
-using DEHBSMI.Tools.Generators;
+
 
 namespace DEH_BSMI.Tools.Tests.Commands
 {
-    using STARIONGROUP.DEHCSV.Services;
+    using System;
+    using System.CommandLine.Invocation;
+
+    using DEHBSMI.Tools.Commands;
+    using DEHBSMI.Tools.Generators;
 
     using Moq;
 
     using NUnit.Framework;
-    using DEHBSMI.Tools.Commands;
-    using STARIONGROUP.DEHCSV.Mapping;
-    using STARIONGROUP.DEHCSV;
-    using System.CommandLine.Invocation;
-    using System;
+
+    using STARIONGROUP.DEHCSV.Services;
 
     [TestFixture]
     public class HtmlReportCommandTestFixture

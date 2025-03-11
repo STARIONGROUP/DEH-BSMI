@@ -66,11 +66,13 @@ namespace DEHBSMI.Tools
                             services.AddSingleton<ISession, Session>();
                             services.AddSingleton<IDataSourceSelector, DataSourceSelector>();
                             services.AddSingleton<IIterationReader, IterationReader>();
+                            services.AddSingleton<ITraceabilityDotFileGenerator, TraceabilityDotFileGenerator>();
                             services.AddSingleton<IXlReportGenerator, XlReportGenerator>();
                             services.AddSingleton<IHtmlReportGenerator, HtmlReportGenerator>();
                         })
                         .UseCommandHandler<XlReportCommand, XlReportCommand.Handler>()
                         .UseCommandHandler<HtmlReportCommand, HtmlReportCommand.Handler>()
+                        .UseCommandHandler<DotFileCommand, DotFileCommand.Handler>()
                     )
                 .UseDefaults()
 
@@ -120,6 +122,9 @@ namespace DEHBSMI.Tools
 
             var htmlReportCommand = new HtmlReportCommand();
             root.AddCommand(htmlReportCommand);
+
+            var dotFileCommand = new DotFileCommand();
+            root.AddCommand(dotFileCommand);
 
             return root;
         }

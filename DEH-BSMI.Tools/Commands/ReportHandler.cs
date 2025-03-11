@@ -21,21 +21,15 @@
 namespace DEHBSMI.Tools.Commands
 {
     using System;
-    using System.Collections.Generic;
     using System.CommandLine.Invocation;
     using System.Diagnostics;
-    using System.Globalization;
     using System.IO;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
-    using CDP4Common.EngineeringModelData;
-
     using CDP4Dal;
     using CDP4Dal.DAL;
-    
-    using DEHBSMI.Tools.Generators;
+
     using DEHBSMI.Tools.Resources;
 
     using Spectre.Console;
@@ -57,7 +51,7 @@ namespace DEHBSMI.Tools.Commands
         /// The (injected) <see cref="IIterationReader"/> used to read <see cref="Iteration"/> data 
         /// from the selected data source
         /// </summary>
-        private readonly IIterationReader iterationReader;
+        protected readonly IIterationReader iterationReader;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReportHandler"/>
@@ -70,21 +64,11 @@ namespace DEHBSMI.Tools.Commands
         /// The (injected) <see cref="IIterationReader"/> used to read <see cref="Iteration"/> data 
         /// from the selected data source
         /// </param>
-        /// <param name="reportGenerator">
-        /// The <see cref="IReportGenerator"/> used to generate a UML report
-        /// </param>
-        protected ReportHandler(IDataSourceSelector dataSourceSelector,
-            IIterationReader iterationReader, IReportGenerator reportGenerator)
+        protected ReportHandler(IDataSourceSelector dataSourceSelector, IIterationReader iterationReader)
         {
             this.dataSourceSelector = dataSourceSelector ?? throw new ArgumentNullException(nameof(dataSourceSelector));
             this.iterationReader = iterationReader ?? throw new ArgumentNullException(nameof(iterationReader));
-            this.ReportGenerator = reportGenerator ?? throw new ArgumentNullException(nameof(reportGenerator));
         }
-
-        /// <summary>
-        /// Gets or sets the <see cref="IReportGenerator"/> used to generate a UML report
-        /// </summary>
-        public IReportGenerator ReportGenerator { get; private set; }
 
         /// <summary>
         /// Gets or sets the value indicating whether the logo should be shown or not
@@ -127,17 +111,6 @@ namespace DEHBSMI.Tools.Commands
         public FileInfo OutputReport { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the specification that needs to be processed. If empty or null then all non-deprecated
-        /// Requirements Specifications are taken into account
-        /// </summary>
-        public string SourceSpecification { get; set; }
-
-        /// <summary>
-        /// Gets or sets the value for the BSMI parameter for unallocated requirements
-        /// </summary>
-        public string UnallocatedBsmiCode { get; set; }
-
-        /// <summary>
         /// Gets or sets the value indicating whether the generated report needs to be automatically be
         /// opened once generated.
         /// </summary>
@@ -166,109 +139,8 @@ namespace DEHBSMI.Tools.Commands
         /// <returns>
         /// 0 when successful, another if not
         /// </returns>
-        public async Task<int> InvokeAsync(InvocationContext context)
-        {
-            if (!this.InputValidation())
-            {
-                return -1;
-            }
-
-            var isValidExtension = this.ReportGenerator.IsValidReportExtension(this.OutputReport);
-            if (!isValidExtension.Item1)
-            {
-                AnsiConsole.WriteLine("");
-                AnsiConsole.MarkupLine($"[red] {isValidExtension.Item2} [/]");
-                AnsiConsole.WriteLine("");
-                return -1;
-            }
-
-            try
-            {
-                AnsiConsole.MarkupLine("[yellow]Initializing report parameters...[/]");
-                AnsiConsole.WriteLine();
-                AnsiConsole.MarkupLine($"[green] --no-logo: {Markup.Escape(this.NoLogo.ToString(CultureInfo.InvariantCulture))}[/]");
-                AnsiConsole.MarkupLine($"[green] --username: {Markup.Escape(this.Username)}[/]");
-                AnsiConsole.MarkupLine($"[green] --data-source: {Markup.Escape(this.DataSource)}[/]");
-                AnsiConsole.MarkupLine($"[green] --model: {Markup.Escape(this.Model)}[/]");
-                AnsiConsole.MarkupLine($"[green] --iteration: {Markup.Escape(this.Iteration.ToString(CultureInfo.InvariantCulture))}[/]");
-                AnsiConsole.MarkupLine($"[green] --domainofexpertise: {Markup.Escape(this.DomainOfExpertise)}[/]");
-                AnsiConsole.MarkupLine($"[green] --source-specification: {Markup.Escape(string.IsNullOrEmpty(this.SourceSpecification) ? "All" : this.SourceSpecification)}[/]");
-                AnsiConsole.MarkupLine($"[green] --unallocated-bsmi-code: {Markup.Escape(this.UnallocatedBsmiCode)}[/]");
-                AnsiConsole.MarkupLine($"[green] --auto-open-report: {Markup.Escape(this.AutoOpenReport.ToString(CultureInfo.InvariantCulture))}[/]");
-
-                AnsiConsole.WriteLine();
-                await Task.Delay(500);
-
-                AnsiConsole.MarkupLine($"[green] Connecting to source[/]");
-                await Task.Delay(250);
-
-                var uri = this.CreateUriFromDataSource(this.DataSource);
-                var session = this.CreateSession(uri);
-                await session.Open(false);
-
-                AnsiConsole.MarkupLine($"[green] Reading Iteration data[/]");
-                await Task.Delay(250);
-
-                var iteration = await this.iterationReader.ReadAsync(session, this.Model, this.Iteration, this.DomainOfExpertise);
-
-                var requirementsSpecifications = new List<RequirementsSpecification>();
-                if (string.IsNullOrEmpty(this.SourceSpecification))
-                {
-                    var specs = iteration.RequirementsSpecification.Where(x => !x.IsDeprecated);
-                    requirementsSpecifications.AddRange(specs);
-                }
-                else
-                {
-                    var spec = iteration.RequirementsSpecification.SingleOrDefault(x => x.ShortName == this.SourceSpecification);
-                    if (spec != null)
-                    {
-                        requirementsSpecifications.Add(spec);
-                    }
-                }
-
-                AnsiConsole.MarkupLine($"[green] Generating Report[/]");
-                await Task.Delay(250);
-
-                this.ReportGenerator.Generate(iteration, requirementsSpecifications, this.OutputReport, this.UnallocatedBsmiCode);
-
-                AnsiConsole.MarkupLine($"[grey]LOG:[/] Requirement {this.ReportGenerator.QueryReportType()} report generated at [bold]{this.OutputReport.FullName}[/]");
-                AnsiConsole.WriteLine();
-
-                await Task.Delay(500);
-
-                if (this.AutoOpenReport)
-                {
-                    this.ExecuteAutoOpen();
-                }
-
-                return 0;
-            }
-            catch (IOException ex)
-            {
-                AnsiConsole.WriteLine();
-                AnsiConsole.MarkupLine("[red]The report file could not be generated or opened. Make sure the file is not open and try again.[/]");
-                AnsiConsole.WriteLine();
-                AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
-                AnsiConsole.WriteLine();
-                AnsiConsole.MarkupLine("[green]Dropping to impulse speed[/]");
-                AnsiConsole.WriteLine();
-            }
-            catch (Exception ex)
-            {
-                AnsiConsole.WriteLine();
-                AnsiConsole.MarkupLine("[red]An exception occurred[/]");
-                AnsiConsole.MarkupLine("[green]Dropping to impulse speed[/]");
-                AnsiConsole.MarkupLine("[red]please report an issue at[/]");
-                AnsiConsole.MarkupLine("[link] https://github.com/STARIONGROUP [/]");
-                AnsiConsole.WriteLine();
-                AnsiConsole.WriteException(ex);
-
-                return -1;
-            }
-
-            return 0;
-        }
-
+        public abstract Task<int> InvokeAsync(InvocationContext context);
+        
         /// <summary>
         /// Converts the data source to a <see cref="Uri"/>
         /// </summary>
@@ -282,7 +154,7 @@ namespace DEHBSMI.Tools.Commands
         /// thrown when the <paramref name="dataSource"/> is a file (not http or https) and
         /// when it cannot be found.
         /// </exception>
-        private Uri CreateUriFromDataSource(string dataSource)
+        protected Uri CreateUriFromDataSource(string dataSource)
         {
             if (this.DataSource.StartsWith("http"))
             {
@@ -316,7 +188,7 @@ namespace DEHBSMI.Tools.Commands
         /// <returns>
         /// An instance of <see cref="ISession"/>
         /// </returns>
-        private ISession CreateSession(Uri uri)
+        protected ISession CreateSession(Uri uri)
         {
             var dal = this.dataSourceSelector.Select(uri);
 
@@ -348,9 +220,6 @@ namespace DEHBSMI.Tools.Commands
         /// <summary>
         /// Automatically opens the generated report
         /// </summary>
-        /// <param name="ctx">
-        /// Spectre Console <see cref="StatusContext"/>
-        /// </param>
         protected void ExecuteAutoOpen()
         {
             if (this.AutoOpenReport)

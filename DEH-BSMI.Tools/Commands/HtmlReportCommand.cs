@@ -41,6 +41,15 @@ namespace DEHBSMI.Tools.Commands
         /// </summary>
         public HtmlReportCommand() : base("html-report", "Generates a html report of the 10-25 model")
         {
+            var unallocatedBsmiCodeOption = new Option<string>(
+                name: "--unallocated-bsmi-code",
+                description: "the value of the BSMI parameter for unallocated requirements",
+                getDefaultValue: () => "9999"
+            );
+            unallocatedBsmiCodeOption.AddAlias("-ubc");
+            unallocatedBsmiCodeOption.IsRequired = false;
+            this.AddOption(unallocatedBsmiCodeOption);
+
             var reportFileOption = new Option<FileInfo>(
                 name: "--output-report",
                 description: "The path to the html report file. Supported extensions are '.html'",
@@ -48,12 +57,20 @@ namespace DEHBSMI.Tools.Commands
             reportFileOption.AddAlias("-o");
             reportFileOption.IsRequired = true;
             this.AddOption(reportFileOption);
+
+            var sourceSpecificationOption = new Option<string>(
+                name: "--source-specification",
+                description: "The Specification from which the report is generated. If not specified all available non-deprecated specifications are taken into account"
+            );
+            sourceSpecificationOption.AddAlias("-spec");
+            sourceSpecificationOption.IsRequired = false;
+            this.AddOption(sourceSpecificationOption);
         }
 
         /// <summary>
         /// The Command Handler of the <see cref="HtmlReportCommand"/>
         /// </summary>
-        public new class Handler : ReportHandler, ICommandHandler
+        public new class Handler : RequirementsReportHandler, ICommandHandler
         {
             /// <summary>
             /// Initializes a nwe instance of the <see cref="Handler"/> class.

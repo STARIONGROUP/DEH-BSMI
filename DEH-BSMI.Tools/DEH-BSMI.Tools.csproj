@@ -8,11 +8,12 @@
         <TargetFramework>net9.0</TargetFramework>
         <RootNamespace>DEHBSMI.Tools</RootNamespace>
         <LangVersion>12.0</LangVersion>
-        <Version>1.1.1</Version>
+        <Version>2.0.0</Version>
         <Description>A Commandline application used to convert an E-TM-10-25 data source into a BSMI specification structure</Description>
         <Title>DEHBSMI.Tools</Title>
         <PackageReleaseNotes>
-            [Ignore] deprecated requirements when exporting
+            [Improve] Excel report - add bsmi parameter and add incoming and outgoing relationships
+            [Add] dot file generator
         </PackageReleaseNotes>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>mbse ecss-e-tm-10-25 cdp4 modeltopia</PackageTags>
@@ -50,14 +51,14 @@
     <ItemGroup>
         <PackageReference Include="DEH-CSV" Version="3.0.1" />
         <PackageReference Include="ClosedXML" Version="0.104.2" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.3" />
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
         <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
         <PackageReference Include="Spectre.Console" Version="0.49.1" />
     </ItemGroup>
 
     <ItemGroup Label="Transitive Dependency overrides">
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
     </ItemGroup>
 
 </Project>

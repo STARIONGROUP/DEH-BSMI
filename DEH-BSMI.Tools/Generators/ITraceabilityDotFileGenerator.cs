@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-//  <copyright file="IReportGenerator.cs" company="Starion Group S.A.">
+//  <copyright file="ITraceabilityDotFileGenerator.cs" company="Starion Group S.A.">
 // 
 //    Copyright 2019-2025 Starion Group S.A.
 // 
@@ -23,31 +23,30 @@ namespace DEHBSMI.Tools.Generators
     using System;
     using System.Collections.Generic;
     using System.IO;
-    
+
     using CDP4Common.EngineeringModelData;
+    using CDP4Common.SiteDirectoryData;
 
     /// <summary>
-    /// The purpose of the <see cref="IReportGenerator"/> is to generate a BSMI report based on
-    /// <see cref="ElementDefinition"/>s, <see cref="Requirement"/>s and <see cref="BinaryRelationship"/>s
+    /// The purpose of the <see cref="ITraceabilityDotFileGenerator"/> is to generate a Graphviz
+    /// dot file that displays traceability from the various levels of the requirements
     /// </summary>
-    public interface IReportGenerator
+    public interface ITraceabilityDotFileGenerator
     {
         /// <summary>
-        /// Generates the BSMI export
+        /// Generates the dot file
         /// </summary>
         /// <param name="iteration">
-        /// The <see cref="Iteration"/> that contains the data that is to be generated
+        /// The <see cref="Iteration"/> for which the traceability dot file is to be generated
         /// </param>
-        /// <param name="specifications">
-        /// The <see cref="RequirementsSpecification"/>s that need to be taken into account for report generation
+        /// <param name="regionConfigurations">
+        /// The <see cref="RequirementsSpecification"/> and <see cref="Category"/> combinations that are used to
+        /// generate sub-graphs
         /// </param>
-        /// <param name="outputReport">
-        /// The <see cref="FileInfo"/> where the result is to be generated
+        /// <param name="dotFileInfo">
+        /// the generated dot file
         /// </param>
-        /// <param name="unallocatedBsmiCode">
-        /// The value for the BSMI parameter for unallocated requirements
-        /// </param>
-        public void Generate(Iteration iteration, IEnumerable<RequirementsSpecification> specifications, FileInfo outputReport, string unallocatedBsmiCode);
+        public void Generate(Iteration iteration, IEnumerable<Tuple<RequirementsSpecification, IEnumerable<Category>>> regionConfigurations, FileInfo dotFileInfo);
 
         /// <summary>
         /// Verifies whether the extension of the <paramref name="outputPath"/> is valid or not
