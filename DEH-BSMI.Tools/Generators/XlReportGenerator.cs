@@ -137,7 +137,7 @@ namespace DEHBSMI.Tools.Generators
 
             foreach (var requirementsSpecification in specifications)
             {
-                var nonGroupedRequirements = requirementsSpecification.Requirement.Where(x => x.Group == null);
+                var nonGroupedRequirements = requirementsSpecification.Requirement.Where(x => x.Group == null && !x.IsDeprecated);
 
                 foreach (var requirement in nonGroupedRequirements)
                 {
@@ -146,7 +146,7 @@ namespace DEHBSMI.Tools.Generators
 
                 foreach (var requirementsGroup in requirementsSpecification.GetAllContainedGroups())
                 {
-                    var groupedRequirements = requirementsSpecification.Requirement.Where(x => x.Group == requirementsGroup);
+                    var groupedRequirements = requirementsSpecification.Requirement.Where(x => x.Group == requirementsGroup && !x.IsDeprecated);
 
                     foreach (var requirement in groupedRequirements)
                     {
@@ -241,9 +241,14 @@ namespace DEHBSMI.Tools.Generators
                     {
                         var requirement = binaryRelationship.Target as Requirement;
 
+                        if (requirement == null || !requirement.IsDeprecated)
+                        {
+                            continue;
+                        }
+
                         var isRequirementContainedByInlcudedSpecification = specifications.Any(requirementsSpecification => requirementsSpecification.Requirement.Contains(requirement));
 
-                        if (isRequirementContainedByInlcudedSpecification)
+                        if (isRequirementContainedByInlcudedSpecification )
                         {
                             if (!requirementPayloads.TryGetValue(requirement.Iid, out var requirementPayload))
                             {
@@ -269,6 +274,12 @@ namespace DEHBSMI.Tools.Generators
             {
                 foreach (var requirement in specification.Requirement)
                 {
+                    if (requirement.IsDeprecated)
+                    {
+                        this.logger.LogInformation("Deprecated Requirement {Iid}:{ShortName} has been ignored", requirement.Iid, requirement.ShortName);
+                        continue;
+                    }
+
                     var allocatedRequirements = requirementPayloads.Where(x => x.Value.Requirement == requirement);
                     if (!allocatedRequirements.Any())
                     {
