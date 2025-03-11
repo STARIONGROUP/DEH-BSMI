@@ -241,7 +241,7 @@ namespace DEHBSMI.Tools.Generators
                     {
                         var requirement = binaryRelationship.Target as Requirement;
 
-                        if (requirement == null || !requirement.IsDeprecated)
+                        if (requirement == null || requirement.IsDeprecated)
                         {
                             continue;
                         }
