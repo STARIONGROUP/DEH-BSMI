@@ -18,19 +18,19 @@
 //  </copyright>
 //  ------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Linq;
-using CDP4Common.EngineeringModelData;
-
 namespace DEHBSMI.Tools.Commands
 {
     using System;
+    using System.Collections.Generic;
     using System.CommandLine.Invocation;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+
+    using CDP4Common.EngineeringModelData;
 
     using CDP4Dal;
     using CDP4Dal.DAL;
@@ -229,7 +229,7 @@ namespace DEHBSMI.Tools.Commands
                 AnsiConsole.MarkupLine($"[green] Generating Report[/]");
                 await Task.Delay(250);
 
-                this.ReportGenerator.Generate(iteration, requirementsSpecifications, this.OutputReport);
+                this.ReportGenerator.Generate(iteration, requirementsSpecifications, this.OutputReport, this.UnallocatedBsmiCode);
 
                 AnsiConsole.MarkupLine($"[grey]LOG:[/] Requirement {this.ReportGenerator.QueryReportType()} report generated at [bold]{this.OutputReport.FullName}[/]");
                 AnsiConsole.WriteLine();
@@ -299,7 +299,7 @@ namespace DEHBSMI.Tools.Commands
             var baseUri = new Uri(System.AppContext.BaseDirectory);
             var fileUri = new Uri(baseUri, this.DataSource);
 
-            if (File.Exists(fileUri.AbsolutePath))
+            if (System.IO.File.Exists(fileUri.AbsolutePath))
             {
                 return fileUri;
             }

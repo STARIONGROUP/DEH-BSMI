@@ -18,11 +18,10 @@
 //  </copyright>
 //  ------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-
 namespace DEHBSMI.Tools.Generators
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     
     using CDP4Common.EngineeringModelData;
@@ -45,7 +44,10 @@ namespace DEHBSMI.Tools.Generators
         /// <param name="outputReport">
         /// The <see cref="FileInfo"/> where the result is to be generated
         /// </param>
-        public void Generate(Iteration iteration, IEnumerable<RequirementsSpecification> specifications, FileInfo outputReport);
+        /// <param name="unallocatedBsmiCode">
+        /// The value for the BSMI parameter for unallocated requirements
+        /// </param>
+        public void Generate(Iteration iteration, IEnumerable<RequirementsSpecification> specifications, FileInfo outputReport, string unallocatedBsmiCode);
         
         /// <summary>
         /// Verifies whether the extension of the <paramref name="outputPath"/> is valid or not

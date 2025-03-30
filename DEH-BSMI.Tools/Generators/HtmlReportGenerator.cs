@@ -63,7 +63,10 @@ namespace DEHBSMI.Tools.Generators
         /// <param name="outputReport">
         /// The <see cref="FileInfo"/> where the result is to be generated
         /// </param>
-        public void Generate(Iteration iteration, IEnumerable<RequirementsSpecification> specifications, FileInfo outputReport)
+        /// <param name="unallocatedBsmiCode">
+        /// The value for the BSMI parameter for unallocated requirements
+        /// </param>
+        public void Generate(Iteration iteration, IEnumerable<RequirementsSpecification> specifications, FileInfo outputReport, string unallocatedBsmiCode)
         {
             this.logger.LogInformation("Start Generating the HTML BMSI Report");
 

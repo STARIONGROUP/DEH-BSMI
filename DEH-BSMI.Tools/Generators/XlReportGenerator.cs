@@ -76,7 +76,10 @@ namespace DEHBSMI.Tools.Generators
         /// <param name="outputReport">
         /// The <see cref="FileInfo"/> where the result is to be generated
         /// </param>
-        public void Generate(Iteration iteration, IEnumerable<RequirementsSpecification> specifications, FileInfo outputReport)
+        /// <param name="unallocatedBsmiCode">
+        /// The value for the BSMI parameter for unallocated requirements
+        /// </param>
+        public void Generate(Iteration iteration, IEnumerable<RequirementsSpecification> specifications, FileInfo outputReport, string unallocatedBsmiCode)
         {
             if (iteration == null)
             {
@@ -101,7 +104,7 @@ namespace DEHBSMI.Tools.Generators
             // generate an option sheet
             foreach (Option option in iteration.Option)
             {
-                this.GenerateBsmiSheet(workbook, iteration, specifications, option);
+                this.GenerateBsmiSheet(workbook, iteration, specifications, option, unallocatedBsmiCode);
             }
 
             this.logger.LogInformation("Saving BSMI file to {0}", outputReport.FullName);
@@ -134,6 +137,9 @@ namespace DEHBSMI.Tools.Generators
             dataTable.Columns.Add("Requirements Text", typeof(string));
             dataTable.Columns.Add("Owner", typeof(string));
             dataTable.Columns.Add("Categories", typeof(string));
+
+            dataTable.Columns.Add("Derives", typeof(string));
+            dataTable.Columns.Add("Derived By", typeof(string));
 
             foreach (var requirementsSpecification in specifications)
             {
@@ -196,6 +202,10 @@ namespace DEHBSMI.Tools.Generators
             requirementDataRow["Owner"] = $"{requirement.Owner?.ShortName}";
             requirementDataRow["Categories"] = $"{requirement.GetAllCategoryShortNames()}";
 
+            requirementDataRow["Derives"] = string.Join(" ; ",this.ComputeIncomingRequirementShortnames(requirement));
+
+            requirementDataRow["Derived By"] = string.Join(" ; ", this.ComputeOutgoingRequirementShortnames(requirement));
+
             dataTable.Rows.Add(requirementDataRow);
         }
 
@@ -214,7 +224,10 @@ namespace DEHBSMI.Tools.Generators
         /// <param name="option">
         /// The <see cref="Option"/> for which the requirements are generated
         /// </param>
-        private void GenerateBsmiSheet(XLWorkbook workbook, Iteration iteration, IEnumerable<RequirementsSpecification> specifications, Option option)
+        /// <param name="unallocatedBsmiCode">
+        /// The value for the BSMI parameter for unallocated requirements
+        /// </param>
+        private void GenerateBsmiSheet(XLWorkbook workbook, Iteration iteration, IEnumerable<RequirementsSpecification> specifications, Option option, string unallocatedBsmiCode)
         {
             var optionWorksheet = workbook.Worksheets.Add($"{option.ShortName}");
 
@@ -285,11 +298,22 @@ namespace DEHBSMI.Tools.Generators
                     {
                         if (!requirementPayloads.TryGetValue(requirement.Iid, out var requirementPayload))
                         {
-                            requirementPayload = new RequirementPayload(requirement);
-                            requirementPayload.Bsmi = "9999";
-                            requirementPayloads.Add(requirement.Iid, requirementPayload);
+                            var simpleParameterValue = requirement.ParameterValue.SingleOrDefault(x => x.ParameterType.ShortName == "BSMI");
 
-                            this.logger.LogWarning("The requirement has not been linked to a BSMI and is therefore added to BSMI 9999");
+                            var bsmiValue = unallocatedBsmiCode;
+
+                            if (simpleParameterValue != null && simpleParameterValue.Value[0] != "-")
+                            {
+                                bsmiValue = simpleParameterValue.Value[0];
+                            }
+                            else
+                            {
+                                this.logger.LogWarning("The requirement has not been linked to a BSMI and is therefore added to BSMI 9999");
+                            }
+
+                            requirementPayload = new RequirementPayload(requirement);
+                            requirementPayload.Bsmi = bsmiValue;
+                            requirementPayloads.Add(requirement.Iid, requirementPayload);
                         }
                     }
                 }
@@ -303,9 +327,9 @@ namespace DEHBSMI.Tools.Generators
             dataTable.Columns.Add("BSMI Nummer", typeof(string));
             dataTable.Columns.Add("Eistekst - EN", typeof(string));
             dataTable.Columns.Add("Object Type", typeof(string));
-            dataTable.Columns.Add("Outlinks", typeof(string));
-            dataTable.Columns.Add("Requirement - Iid", typeof(string));
-            dataTable.Columns.Add("Relationship - Iid", typeof(string));
+            dataTable.Columns.Add("Derives", typeof(string));
+            dataTable.Columns.Add("Derived By", typeof(string));
+            dataTable.Columns.Add("Categories", typeof(string));
 
             var payloads = requirementPayloads.Values.OrderBy(x => x.Bsmi);
 
@@ -318,7 +342,7 @@ namespace DEHBSMI.Tools.Generators
                 {
                     objectLevel = payload.Bsmi.ComputeObjectLevel();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     this.logger.LogWarning("the object level for requirement {Requirement} could not be computed", payload.Requirement.Iid);
                 }
@@ -328,8 +352,9 @@ namespace DEHBSMI.Tools.Generators
                 requirementDataRow["BSMI Nummer"] = payload.Bsmi;
                 requirementDataRow["Eistekst - EN"] = payload.Requirement.QueryDefinitionContent();
                 requirementDataRow["Object Type"] = "Requirement";
-                requirementDataRow["Requirement - Iid"] = payload.Requirement.Iid;
-                requirementDataRow["Relationship - Iid"] = string.Join(",", payload.BinaryRelationships.Select(r => r.Iid.ToString()));
+                requirementDataRow["Categories"] = $"{payload.Requirement.GetAllCategoryShortNames()}";
+                requirementDataRow["Derives"] = string.Join(" ; ", this.ComputeIncomingRequirementShortnames(payload.Requirement));
+                requirementDataRow["Derived By"] = string.Join(" ; ", this.ComputeOutgoingRequirementShortnames(payload.Requirement));
 
                 dataTable.Rows.Add(requirementDataRow);
             }
@@ -337,6 +362,64 @@ namespace DEHBSMI.Tools.Generators
             optionWorksheet.Cell(1, 1).InsertTable(dataTable, $"{option.ShortName}", true);
 
             this.FormatSheet(optionWorksheet);
+        }
+
+        /// <summary>
+        /// Computes the shortnames of requirements for which there is a <see cref="BinaryRelationship"/>
+        /// to the subject <paramref name="requirement"/> from a source <see cref="Requirement"/>
+        /// </summary>
+        /// <param name="requirement">
+        /// The subject <see cref="Requirement"/> for which source requirements are to be computed
+        /// </param>
+        /// <returns>
+        /// a list of requirement shortnames
+        /// </returns>
+        private IReadOnlyList<string> ComputeIncomingRequirementShortnames(Requirement requirement)
+        {
+            var incoming = requirement.QueryRelationships
+                .OfType<BinaryRelationship>()
+                .Where(x => x.Target == requirement && x.Source is Requirement);
+
+            var incomingRequirementShortnames = new List<string>();
+
+            foreach (var incomingBinaryRelationship in incoming)
+            {
+                if (incomingBinaryRelationship.Source is Requirement source && !source.IsDeprecated)
+                {
+                    incomingRequirementShortnames.Add(source.ShortName);
+                }
+            }
+
+            return incomingRequirementShortnames;
+        }
+
+        /// <summary>
+        /// Computes the shortnames of requirements for which there is a <see cref="BinaryRelationship"/>
+        /// from the subject <paramref name="requirement"/> to a target <see cref="Requirement"/>
+        /// </summary>
+        /// <param name="requirement">
+        /// The subject <see cref="Requirement"/> for which target requirements are to be computed
+        /// </param>
+        /// <returns>
+        /// a list of requirement shortnames
+        /// </returns>
+        private IReadOnlyList<string> ComputeOutgoingRequirementShortnames(Requirement requirement)
+        {
+            var outgoing = requirement.QueryRelationships
+                .OfType<BinaryRelationship>()
+                .Where(x => x.Source == requirement && x.Target is Requirement);
+
+            var outgoingRequirementShortnames = new List<string>();
+
+            foreach (var outgoingBinaryRelationship in outgoing)
+            {
+                if (outgoingBinaryRelationship.Target is Requirement target && !target.IsDeprecated)
+                {
+                    outgoingRequirementShortnames.Add(target.ShortName);
+                }
+            }
+
+            return outgoingRequirementShortnames;
         }
 
         /// <summary>
