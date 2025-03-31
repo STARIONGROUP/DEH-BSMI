@@ -50,7 +50,15 @@ The commandline application supports the following commandline options:
 The following gives a complete example that can be used on the publicly hosted server:
 
 ```
-DEH-BSMI.Tools.exe dot-report --username admin --password pass --data-source http://cdp4services-public.cdp4.org --model LOFT --iteration 1 --domainofexpertise SYE --specification KUR:CAT1:CAT2 --specification SYS:CAT2:CAT3
+DEH-BSMI.Tools.exe dot-report --username admin --password pass --data-source http://cdp4services-public.cdp4.org --model LOFT --iteration 1 --domainofexpertise SYE --specification KUR:CAT1:CAT2 --specification SYS:CAT2:CAT3v -0 LOFT.dot
+```
+
+The resulting DOT file can be proccessed by the [GraphViz](https://graphviz.org) `dot` command to transform it into an image such as SVG. The [Graphviz](https://graphviz.org) toolsuite can be downladed [here](https://graphviz.org/download/).
+
+Use the following command to create the SVG:
+
+```
+dot.exe -Tsvg LOFT.dot -o LOFT.svg
 ```
 
 ## Build and Release
