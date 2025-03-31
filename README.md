@@ -2,7 +2,11 @@
 
 Commandline application that retrives data from an ECSS-E-TM-10-25 data source and generates a requirements report that contains the requirements according to the structure in 10-25 and the BSMI.
 
-## Usage:
+The Tool currently supports 2 commands:
+  - excel-report: generates an excel report the lists all the requirements, including relationships between requirements.
+  - dot-report: generates a DOT file that can be used by Graphviz to convert to an SVG 
+
+## Usage - excel-report:
 
 The commandline application supports the following commandline options:
 
@@ -24,6 +28,29 @@ The following gives a complete example that can be used on the publicly hosted s
 
 ```
 DEH-BSMI.Tools.exe excel-report --username admin --password pass --data-source http://cdp4services-public.cdp4.org --model LOFT --iteration 1 --domainofexpertise SYE --auto-open-report true
+```
+
+## Usage - dot-report:
+
+The commandline application supports the following commandline options:
+
+| option                  | alias  |  description |
+| ----------------------- | ------ | ------------ | 
+| --no-logo               |        | suppress showing the logo |
+| --data-source           | -ds    | The URI of the ECSS-E-TM-10-25 data source |
+| --username              | -u     | The username that is used to open the selected data source | 
+| --password              | -p     | The password that is used to open the selected data source |
+| --model                 | -m     | The EngineeringModel shortname |
+| --iteration             | -i     | the Iteration number |
+| --domainofexpertise     | -d     | The Domain of Expertise shortname |
+| --specification         | --spec | The shortname of the Specification and categories that need to be taken into account for graph generation |
+| --output-report         | -o     | path to report file |
+| --auto-open-report      | -a     | Open the generated report with its default application |
+
+The following gives a complete example that can be used on the publicly hosted server:
+
+```
+DEH-BSMI.Tools.exe dot-report --username admin --password pass --data-source http://cdp4services-public.cdp4.org --model LOFT --iteration 1 --domainofexpertise SYE --specification KUR:CAT1:CAT2 --specification SYS:CAT2:CAT3
 ```
 
 ## Build and Release
